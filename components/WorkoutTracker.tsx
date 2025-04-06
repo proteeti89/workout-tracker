@@ -6,53 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
 import { Combobox } from "@/components/ui/combobox";
+import Link from "next/link";
 
 const defaultExercises: string[] = [
-  "Bench Press",
-  "Incline Bench Press",
-  "Chest Fly",
-  "Push-Ups",
-  "Pec Deck",
-  "Lat Pulldown",
-  "Pull-Ups",
-  "Seated Row",
-  "Deadlift",
-  "T-Bar Row",
-  "One-Arm Dumbbell Row",
-  "Overhead Press",
-  "Lateral Raise",
-  "Front Raise",
-  "Rear Delt Fly",
-  "Arnold Press",
-  "Shoulder Press Machine",
-  "Squats",
-  "Leg Press",
-  "Leg Curl",
-  "Leg Extension",
-  "Romanian Deadlift",
-  "Walking Lunges",
-  "Calf Raises",
-  "Bicep Curl",
-  "Preacher Curl",
-  "Concentration Curl",
-  "Tricep Pushdown",
-  "Overhead Tricep Extension",
-  "Tricep Dips",
-  "Skull Crushers",
-  "Plank",
-  "Russian Twists",
-  "Hanging Leg Raise",
-  "Sit-Ups",
-  "Bicycle Crunches",
-  "Cable Woodchoppers",
-  "Ab Wheel Rollout",
-  "Treadmill",
-  "Elliptical",
-  "StairMaster",
-  "Rowing Machine",
-  "Stationary Bike",
-  "Battle Ropes",
-  "Jump Rope"
+  "Bench Press", "Incline Bench Press", "Chest Fly", "Push-Ups", "Pec Deck",
+  "Lat Pulldown", "Pull-Ups", "Seated Row", "Deadlift", "T-Bar Row",
+  "One-Arm Dumbbell Row", "Overhead Press", "Lateral Raise", "Front Raise",
+  "Rear Delt Fly", "Arnold Press", "Shoulder Press Machine", "Squats",
+  "Leg Press", "Leg Curl", "Leg Extension", "Romanian Deadlift",
+  "Walking Lunges", "Calf Raises", "Bicep Curl", "Preacher Curl",
+  "Concentration Curl", "Tricep Pushdown", "Overhead Tricep Extension",
+  "Tricep Dips", "Skull Crushers", "Plank", "Russian Twists",
+  "Hanging Leg Raise", "Sit-Ups", "Bicycle Crunches", "Cable Woodchoppers",
+  "Ab Wheel Rollout", "Treadmill", "Elliptical", "StairMaster",
+  "Rowing Machine", "Stationary Bike", "Battle Ropes", "Jump Rope"
 ];
 
 interface Exercise {
@@ -62,13 +29,28 @@ interface Exercise {
   weight: string;
 }
 
+interface Workout {
+  id: string;
+  date: string;
+  duration: string;
+  location: string;
+  notes: string;
+  exercises: Exercise[];
+}
+
 export default function WorkoutTracker() {
   const [exercises, setExercises] = useState<Exercise[]>([
     { name: "", sets: "", reps: "", weight: "" }
   ]);
   const [customExercises, setCustomExercises] = useState<string[]>([]);
+  const [date, setDate] = useState<string>("");
+  const [duration, setDuration] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
 
-  const getSuggestions = (): string[] => [...new Set([...defaultExercises, ...customExercises])];
+  const getSuggestions = (): string[] => [
+    ...new Set([...defaultExercises, ...customExercises])
+  ];
 
   const updateExercise = (index: number, field: keyof Exercise, value: string) => {
     const updated = [...exercises];
@@ -91,9 +73,56 @@ export default function WorkoutTracker() {
     }
   };
 
+  const handleSaveWorkout = () => {
+    const newWorkout: Workout = {
+      id: Date.now().toString(),
+      date,
+      duration,
+      location,
+      notes,
+      exercises,
+    };
+
+    const existingData = localStorage.getItem("workouts");
+    const workouts = existingData ? JSON.parse(existingData) : [];
+    workouts.push(newWorkout);
+    localStorage.setItem("workouts", JSON.stringify(workouts));
+
+    // Reset form
+    setDate("");
+    setDuration("");
+    setLocation("");
+    setNotes("");
+    setExercises([{ name: "", sets: "", reps: "", weight: "" }]);
+  };
+
   return (
     <div className="p-4 space-y-4 max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-center">🏋️ Workout Tracker</h1>
+
+      <div className="space-y-2">
+        <Input
+          type="date"
+          placeholder="Workout Date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
+        <Input
+          placeholder="Duration (e.g. 45 minutes)"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+        />
+        <Input
+          placeholder="Gym Location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+        />
+        <Input
+          placeholder="Notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+        />
+      </div>
 
       {exercises.map((exercise, index) => (
         <Card key={index} className="shadow-md">
@@ -138,9 +167,13 @@ export default function WorkoutTracker() {
         <Plus className="mr-2" /> Add Exercise
       </Button>
 
-      <Button variant="secondary" className="w-full mt-2">
+      <Button variant="secondary" className="w-full mt-2" onClick={handleSaveWorkout}>
         Save Workout
       </Button>
+
+      <Link href="/history" className="text-blue-600 underline text-sm block text-center">
+        View Past Workouts →
+      </Link>
     </div>
   );
 }
